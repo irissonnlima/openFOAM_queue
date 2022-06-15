@@ -36,5 +36,5 @@ for alpha in alphas:
     if result:
         print(f'ERRO: Erro ao rodar o caso {alpha}')
         break
-    
     os.chdir(aPath)
+    
