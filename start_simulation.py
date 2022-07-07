@@ -1,5 +1,8 @@
-import manimupation as m
+import os
+import sys
+import shutil
 import numpy as np
+import manimupation as m
 
 def gauss_linear2upwind(file_path:str, time2change:int) -> int:
     
@@ -29,3 +32,21 @@ def gauss_linear2upwind(file_path:str, time2change:int) -> int:
     if t > time2change:
         m.fvSchemes(file_path, 'gradSchemes', gradSchemes)
         m.fvSchemes(file_path, 'divSchemes', divSchemes)
+
+def create_tree (file_path:str, alpha:list, destiny:str = 'CASES') -> str:
+    aPath     = os.getcwd()
+
+    alp     = str(alpha).replace('.', '_')
+    subPath = f'{destiny}/{file_path}_{alp}'
+    
+    shutil.copytree(file_path, subPath)
+    
+    m.alphaCalc_change(subPath, alpha)
+    
+    os.chdir(subPath)
+    result = os.system('decomposePar')
+    if result:
+        print('ERRO: Nao foi possivel decompor o dominio')
+    os.chdir(aPath)
+    
+    return f'{file_path}_{alp}'

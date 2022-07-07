@@ -60,4 +60,15 @@ def timeNow (file_path:str) -> int:
         return data[-1, 0]
     except:
         return -1
-                
+
+def endTime (file_path:str) -> int:
+    path =  f'{file_path}/system/controlDict'
+    
+    with open(path, 'r') as file:
+        for line in file:
+            line = line.strip()
+            if 'endTime' in line[:12]:
+                line     = line.split(' ')
+                line[-1] = line[-1].strip(';')
+                return int(line[-1]) 
+            

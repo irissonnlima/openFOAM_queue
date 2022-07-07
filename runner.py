@@ -2,39 +2,32 @@ import os
 import sys
 import shutil
 import manimupation
+import start_simulation
 
-params  = sys.argv[1:]
+params  = list(filter(lambda val: not '-' in val, sys.argv[1:]))
+flags   = list(filter(lambda val: '-' in val, sys.argv[1:]))
 
-assert len(params) >= 2, 'ERROR: Quantidade de Parâmetros insuficiente'
-assert os.path.isdir(params[0]), 'ERROR: Diretório não encontrado'
+alphas  = params[1:] if params[1].isnumeric() else params[2:]
+alphas  = [float(alpha) for alpha in alphas]
 
-aPath       = os.getcwd()
-file_tree   = params[0]
-destiny     = 'CASES' if (params[1]).isnumeric() else params[1]
-cases       = 1 if (params[1]).isnumeric() else 2
-alphas      = [float(param) for param in params[cases:]]
+destiny = 'CASES' if params[1].isnumeric() else params[1]
 
-n_process   = manimupation.number_of_process(file_tree)
+aPath   = os.getcwd()
 
 for alpha in alphas:
-    alp     = str(alpha).replace('.', '_')
-    subPath = f'{destiny}/{file_tree}_{alp}'
+    alpha_run   = True
+    alphaPath   = start_simulation.create_tree(params[0], alpha, destiny)
+    endtime     = manimupation.endTime(alphaPath)
     
-    shutil.copytree(file_tree, subPath)
-    
-    manimupation.alphaCalc_change(subPath, alpha)
-    
-    os.chdir(subPath)
-    result = os.system('decomposePar')
-    if result:
-        print('ERRO: Nao foi possivel decompor o dominio')
-        break
-    result = os.system(f'mpirun -np {n_process} simpleFoam -parallel >> log.txt &')
-    print('===========================================================================================')
-    print(result)
-    print('===========================================================================================')
-    if result:
-        print(f'ERRO: Erro ao rodar o caso {alpha}')
-        break
+    os.chdir(f'{aPath}/{alphaPath}')
+    os.system(f'mpirun -np {4} simpleFoam -parallel >> log.txt &  ')
     os.chdir(aPath)
     
+    while(alpha_run):
+        time    = manimupation.timeNow(alphaPath)
+        if '-gauss_linear2upWind' in flags:
+            start_simulation.gauss_linear2upwind(alphaPath, 400)
+        
+        if time >= endtime:
+            alpha_run = False
+        
