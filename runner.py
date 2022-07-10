@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import time as t
 import manimupation
 import start_simulation
 
@@ -17,17 +18,26 @@ aPath   = os.getcwd()
 for alpha in alphas:
     alpha_run   = True
     alphaPath   = start_simulation.create_tree(params[0], alpha, destiny)
-    endtime     = manimupation.endTime(alphaPath)
-    
-    os.chdir(f'{aPath}/{alphaPath}')
+    endtime     = manimupation.endTime(f'{destiny}/{alphaPath}')
+    os.chdir(f'{destiny}/{alphaPath}')
+    os.system('pwd')
     os.system(f'mpirun -np {4} simpleFoam -parallel >> log.txt &  ')
     os.chdir(aPath)
+
+    upWind2gauss = list( filter(lambda val: '-upWind2gauss' in val, flags) )
+    if len( upWind2gauss ):
+        upWind2gauss = int( (upWind2gauss[0].split('-'))[-1] )
+    else:
+        upWind2gauss = 0
+        
     
     while(alpha_run):
-        time    = manimupation.timeNow(alphaPath)
-        if '-gauss_linear2upWind' in flags:
-            start_simulation.gauss_linear2upwind(alphaPath, 400)
+        time         = manimupation.timeNow(f'{destiny}/{alphaPath}')
         
+        if upWind2gauss:
+            start_simulation.upwind2gauss_linear(f'{destiny}/{alphaPath}', upWind2gauss)
+
         if time >= endtime:
             alpha_run = False
-        
+            
+        t.sleep(1)

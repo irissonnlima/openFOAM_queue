@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 def alphaCalc_change (file_path:str, value:float) -> None:
@@ -53,7 +54,8 @@ def fvSchemes (file_path:str, scheme_to_ignore:str, new_scheme) -> int:
     return 0      
                 
 def timeNow (file_path:str) -> int:
-    path =  f'{file_path}/postProcessing/WallCoeffsCyl1/0/forceCoeffs.dat'
+    path        =  f'{file_path}/postProcessing/WallCoeffsCyl1/0/forceCoeffs.dat'
+    #directories = list(filter(lambda x: os.path.isdir(x) and x != 'yPlus', os.listdir(path))) 
     
     try:
         data = np.loadtxt(path)
@@ -71,4 +73,3 @@ def endTime (file_path:str) -> int:
                 line     = line.split(' ')
                 line[-1] = line[-1].strip(';')
                 return int(line[-1]) 
-            

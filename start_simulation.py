@@ -4,11 +4,11 @@ import shutil
 import numpy as np
 import manimupation as m
 
-def gauss_linear2upwind(file_path:str, time2change:int) -> int:
+def upwind2gauss_linear (file_path:str, time2change:int) -> int:
     
     gradSchemes  = 'gradSchemes\n'
     gradSchemes += '{\n'
-    gradSchemes += 'grad(U) cellMDLimited Gauss linear 1.0; // 1.0\n'
+    gradSchemes += 'grad(U) cellMDLimited Gauss linear 0.5; // 1.0 -> 0.5\n'
     gradSchemes += 'grad(k) cellLimited Gauss linear 1;\n'
     gradSchemes += 'grad(omega) cellLimited Gauss linear 1;\n'
     gradSchemes += 'default         Gauss linear;\n'
@@ -17,12 +17,14 @@ def gauss_linear2upwind(file_path:str, time2change:int) -> int:
     divSchemes  = 'divSchemes\n'
     divSchemes += '{\n'
     divSchemes += 'default         none;\n'
-    divSchemes += '//div(phi,U)      bounded Gauss linearUpwind grad(U);\n'
-    divSchemes += 'div(phi,U)      bounded Gauss upwind;\n'
-    divSchemes += '//div(phi,k) bounded Gauss limitedLinear 1;\n'
-    divSchemes += 'div(phi,k) bounded Gauss upwind;\n'
-    divSchemes += '//div(phi,omega) bounded Gauss limitedLinear 1;\n'
-    divSchemes += 'div(phi,omega) bounded Gauss upwind;\n'
+    divSchemes += 'div(phi,U)      bounded Gauss linearUpwind grad(U);\n'
+    divSchemes += '//div(phi,U)      bounded Gauss upwind;\n'
+    divSchemes += '\n'
+    divSchemes += 'div(phi,k) bounded Gauss limitedLinear 1;\n'
+    divSchemes += '//div(phi,k) bounded Gauss upwind;\n'
+    divSchemes += '\n'
+    divSchemes += 'div(phi,omega) bounded Gauss limitedLinear 1;\n'
+    divSchemes += '//div(phi,omega) bounded Gauss upwind;\n'
     divSchemes += '\n'
     divSchemes += 'div((nuEff*dev2(T(grad(U))))) Gauss linear;\n'
     divSchemes += '}'
@@ -44,7 +46,7 @@ def create_tree (file_path:str, alpha:list, destiny:str = 'CASES') -> str:
     m.alphaCalc_change(subPath, alpha)
     
     os.chdir(subPath)
-    result = os.system('decomposePar')
+    result = os.system('decomposePar &> log_decomposepar.txt')
     if result:
         print('ERRO: Nao foi possivel decompor o dominio')
     os.chdir(aPath)
